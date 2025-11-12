@@ -1,0 +1,1 @@
+## This is my practical about AI Agentic and LLMs
