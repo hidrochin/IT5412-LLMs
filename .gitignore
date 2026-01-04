@@ -1,6 +1,7 @@
 .DS_Store
 .lock
 *.sqlite
+*.json
 # Virtual environments
 .venv/
 venv/
