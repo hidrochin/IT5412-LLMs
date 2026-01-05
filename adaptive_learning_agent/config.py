@@ -16,7 +16,8 @@ SPARSE_VECTOR_NAME = "sparse"
 DENSE_MODEL = "sentence-transformers/all-mpnet-base-v2"
 SPARSE_MODEL = "Qdrant/bm25"
 GEMINI_MODEL = "gemini-2.5-flash"
-LLM_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
+# LLM_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
+LLM_MODEL = "steamdj/llama3.1-cpu-only:latest"
 LLM_TEMPERATURE = 0
 
 # --- Text Splitter Configuration ---
