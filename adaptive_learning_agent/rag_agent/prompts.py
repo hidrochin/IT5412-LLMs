@@ -114,3 +114,13 @@ def get_aggregation_prompt() -> str:
         - Do NOT mention sub-questions.
         - Do NOT describe your reasoning.
         """
+
+def get_quiz_prompt() -> str:
+    return """
+    You are a helpful tutor. 
+    Create ONE multiple-choice question to test the user's understanding of the provided text.
+    - The question should be directly related to the text.
+    - Provide 4 distinct options.
+    - Clearly mark the correct index (0-3).
+    - Provide a short explanation.
+    """

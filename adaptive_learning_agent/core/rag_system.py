@@ -1,5 +1,6 @@
 import uuid
 from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 import config
 from db.vector_db_manager import VectorDbManager
@@ -21,10 +22,15 @@ class RAGSystem:
     def initialize(self):
         self.vector_db.create_collection(self.collection_name)
         collection = self.vector_db.get_collection(self.collection_name)
-        llm = ChatGoogleGenerativeAI(model=config.GEMINI_MODEL, temperature=config.LLM_TEMPERATURE)
-        # llm = ChatOllama(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
+        # self.llm = ChatGoogleGenerativeAI(model=config.GEMINI_MODEL, temperature=config.LLM_TEMPERATURE)
+        self.llm = ChatOllama(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
+        self.llm_quiz = ChatGroq(model=config.GROQ_MODEL, temperature=config.LLM_TEMPERATURE)
         tools = ToolFactory(collection).create_tools()
-        self.agent_graph = create_agent_graph(llm, tools)
+        self.agent_graph = create_agent_graph(
+            llm=self.llm, 
+            tools_list=tools,
+            llm_quiz=self.llm_quiz,
+            )
         
     def get_config(self):
         return {"configurable": {"thread_id": self.thread_id}}

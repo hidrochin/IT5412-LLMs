@@ -1,9 +1,21 @@
 from langchain_core.messages import SystemMessage, HumanMessage, RemoveMessage, AIMessage
 from .graph_state import State, AgentState
-from .schemas import QueryAnalysis
+from .schemas import QueryAnalysis, QuizQuestion
 from .prompts import *
 
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from google.api_core.exceptions import ResourceExhausted
+
+# This will try 3 times, waiting 4s, 8s, 16s... if Gemini says "Resource Exhausted"
+retry_decorator = retry(
+    retry=retry_if_exception_type(ResourceExhausted) | retry_if_exception_type(Exception), # Catch generic exceptions if API wrapper hides the specific 429
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=2, min=4, max=60),
+    reraise=True
+)
+
 def analyze_chat_and_summarize(state: State, llm):
+    print("🔄 [1/5] Summarizing conversation history...")
     if len(state["messages"]) < 4:
         return {"conversation_summary": ""}
     
@@ -25,6 +37,7 @@ def analyze_chat_and_summarize(state: State, llm):
     return {"conversation_summary": summary_response.content, "agent_answers": [{"__reset__": True}]}
 
 def analyze_and_rewrite_query(state: State, llm):
+    print("🤔 [2/5] Analyzing and rewriting query...")
     last_message = state["messages"][-1]
     conversation_summary = state.get("conversation_summary", "")
 
@@ -56,6 +69,7 @@ def human_input_node(state: State):
     return {}
 
 def agent_node(state: AgentState, llm_with_tools):
+    print("🕵️ [3/5] Agent is thinking (Deciding on tools)...")
     sys_msg = SystemMessage(content=get_rag_agent_prompt())    
     if not state.get("messages"):
         human_msg = HumanMessage(content=state["question"])
@@ -86,6 +100,7 @@ def extract_final_answer(state: AgentState):
     }
 
 def aggregate_responses(state: State, llm):
+    print("✍️ [4/5] Synthesizing final answer from documents...")
     if not state.get("agent_answers"):
         return {"messages": [AIMessage(content="No answers were generated.")]}
 
@@ -99,3 +114,30 @@ def aggregate_responses(state: State, llm):
     synthesis_response = llm.invoke([SystemMessage(content=get_aggregation_prompt())] + [user_message])
     
     return {"messages": [AIMessage(content=synthesis_response.content)]}
+
+@retry_decorator
+def generate_revision_quiz(state: State, llm):
+    """
+    Generates a multiple choice question based on the agent's last answer.
+    """
+    print("🎓 [5/5] Generating quiz question...")
+    last_message = state["messages"][-1]
+    
+    # Validation: Don't quiz if the answer was "I don't know" or empty
+    if not last_message.content or "unable to generate" in last_message.content.lower():
+        return {"quiz_data": None}
+
+    print("--- GENERATING REVISION QUIZ ---")
+    
+    # Force structured output
+    structured_llm = llm.with_structured_output(QuizQuestion)
+    system_prompt = get_quiz_prompt()
+    try:
+        response = structured_llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=f"Create a quiz based on this explanation:\n\n{last_message.content}")
+        ])
+        return {"quiz_data": response.dict()}
+    except Exception as e:
+        print(f"Quiz generation failed: {e}")
+        raise e

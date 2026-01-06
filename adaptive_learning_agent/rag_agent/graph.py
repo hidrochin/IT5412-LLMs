@@ -3,11 +3,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import ToolNode, tools_condition
 from functools import partial
 
-from .graph_state import State
+from .graph_state import State, AgentState
 from .nodes import *
 from .edges import *
 
-def create_agent_graph(llm, tools_list):
+def create_agent_graph(llm, tools_list, llm_quiz):
     llm_with_tools = llm.bind_tools(tools_list)
     tool_node = ToolNode(tools_list)
 
@@ -32,13 +32,15 @@ def create_agent_graph(llm, tools_list):
     graph_builder.add_node("human_input", human_input_node)
     graph_builder.add_node("process_question", agent_subgraph)
     graph_builder.add_node("aggregate", partial(aggregate_responses, llm=llm))
+    graph_builder.add_node("generate_quiz", partial(generate_revision_quiz, llm=llm))
     
     graph_builder.add_edge(START, "summarize")
     graph_builder.add_edge("summarize", "analyze_rewrite")
     graph_builder.add_conditional_edges("analyze_rewrite", route_after_rewrite)
     graph_builder.add_edge("human_input", "analyze_rewrite")
     graph_builder.add_edge(["process_question"], "aggregate")
-    graph_builder.add_edge("aggregate", END)
+    graph_builder.add_edge("aggregate", "generate_quiz")
+    graph_builder.add_edge("generate_quiz", END)
 
     agent_graph = graph_builder.compile(
         checkpointer=checkpointer,

@@ -1,6 +1,6 @@
 import gradio as gr
 from ui.css import custom_css
-from ui.gradio_app import create_gradio_ui
+from ui.gradio_app_v2 import create_gradio_ui
 
 if __name__ == "__main__":
     demo = create_gradio_ui()

@@ -1,4 +1,4 @@
-from typing import List, Annotated
+from typing import List, Annotated, Optional, Dict, Any
 from langgraph.graph import MessagesState
 
 def accumulate_or_reset(existing: List[dict], new: List[dict]) -> List[dict]:
@@ -13,6 +13,8 @@ class State(MessagesState):
     originalQuery: str = "" 
     rewrittenQuestions: List[str] = []
     agent_answers: Annotated[List[dict], accumulate_or_reset] = []
+    quiz_data: Optional[Dict[str, Any]] = None
+    mode: str = "standard" # "standard" = just answer, "adaptive" = answer + quiz
 
 class AgentState(MessagesState):
     """State for individual agent subgraph"""
