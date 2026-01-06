@@ -134,3 +134,5 @@ xxhash==3.6.0
 zstandard==0.25.0
 langchain-google-genai==4.1.2
 python-dotenv==1.2.1
+google-api-core==2.28.1
+langchain-groq==1.1.1
