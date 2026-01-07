@@ -58,8 +58,6 @@ def create_gradio_ui():
         if history is None:
             history = []
 
-        history.append({"role": "user", "content": message})
-
         # 2. Setup Config
         config = {"configurable": {"thread_id": thread_id}}
         
@@ -92,9 +90,10 @@ def create_gradio_ui():
         except Exception as e:
             bot_msg = f"Error: {str(e)}"
 
-        # 4. Update History (STRICT TUPLE FORMAT)
-        # Format: [[user_msg, bot_msg], [user_msg, bot_msg], ...]
-        history.append([message, bot_msg])
+        # 4. Update History (Proper Gradio Chatbot Format)
+        # Format: [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}, ...]
+        history.append({"role": "user", "content": message})
+        history.append({"role": "assistant", "content": bot_msg})
         
         # 5. Return Results
         if quiz:
@@ -104,7 +103,8 @@ def create_gradio_ui():
                 f"📝 **Quick Review:** {quiz['question_text']}",
                 gr.update(choices=quiz['options'], value=None),
                 quiz['correct_option_index'],
-                quiz['explanation']
+                quiz['explanation'],
+                quiz['options']
             )
         else:
             return (
@@ -113,7 +113,8 @@ def create_gradio_ui():
                 "", 
                 gr.update(choices=[]), 
                 -1, 
-                ""
+                "",
+                []
             )
 
     def check_quiz(user_choice, correct_idx, options, explanation):
@@ -203,12 +204,12 @@ def create_gradio_ui():
                 # Hidden state variables
                 correct_idx = gr.State(-1)
                 explanation = gr.State("")
-
+                options_state = gr.State([])
             # Event Handling
             adaptive_msg.submit(
                 run_adaptive_session,
                 inputs=[adaptive_msg, adaptive_chatbot, adaptive_thread_id],
-                outputs=[adaptive_chatbot, quiz_group, quiz_q, quiz_opts, correct_idx, explanation]
+                outputs=[adaptive_chatbot, quiz_group, quiz_q, quiz_opts, correct_idx, explanation, options_state]
             )
             
             # Clear input after submit
@@ -216,7 +217,7 @@ def create_gradio_ui():
 
             quiz_btn.click(
                 check_quiz,
-                inputs=[quiz_opts, correct_idx, quiz_opts, explanation],
+                inputs=[quiz_opts, correct_idx, options_state, explanation],
                 outputs=[quiz_res]
             )
 

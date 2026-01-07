@@ -15,7 +15,12 @@ class ChatInterface:
                 {"messages": [HumanMessage(content=message.strip())]},
                 self.rag_system.get_config()
             )
-            return result["messages"][-1].content
+            # Extract the last message content from the agent's response
+            last_message = result["messages"][-1].content
+            
+            # Return in Gradio ChatInterface expected format: a string that will be automatically formatted
+            # by the ChatInterface component
+            return last_message
             
         except Exception as e:
             return f"❌ Error: {str(e)}"

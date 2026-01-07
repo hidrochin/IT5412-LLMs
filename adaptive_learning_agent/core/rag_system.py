@@ -2,6 +2,7 @@ import uuid
 from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 import config
 from db.vector_db_manager import VectorDbManager
 from db.parent_store_manager import ParentStoreManager
@@ -23,8 +24,10 @@ class RAGSystem:
         self.vector_db.create_collection(self.collection_name)
         collection = self.vector_db.get_collection(self.collection_name)
         # self.llm = ChatGoogleGenerativeAI(model=config.GEMINI_MODEL, temperature=config.LLM_TEMPERATURE)
-        self.llm = ChatOllama(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
-        self.llm_quiz = ChatGroq(model=config.GROQ_MODEL, temperature=config.LLM_TEMPERATURE)
+        self.llm = ChatOpenAI(model=config.OPENAI_MODEL, temperature=config.LLM_TEMPERATURE)
+        # self.llm = ChatOllama(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
+        # self.llm_quiz = ChatGroq(model=config.GROQ_MODEL, temperature=config.LLM_TEMPERATURE)
+        self.llm_quiz = ChatOpenAI(model=config.OPENAI_MODEL, temperature=config.LLM_TEMPERATURE)
         tools = ToolFactory(collection).create_tools()
         self.agent_graph = create_agent_graph(
             llm=self.llm, 

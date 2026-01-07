@@ -1,11 +1,13 @@
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import ToolNode, tools_condition
+from langchain_openai import ChatOpenAI
 from functools import partial
 
 from .graph_state import State, AgentState
 from .nodes import *
 from .edges import *
+# from adaptive_learning_agent.utils import visualize_graph
 
 def create_agent_graph(llm, tools_list, llm_quiz):
     llm_with_tools = llm.bind_tools(tools_list)
@@ -49,3 +51,29 @@ def create_agent_graph(llm, tools_list, llm_quiz):
 
     print("✓ Agent graph compiled successfully.")
     return agent_graph
+
+def visualize_graph(workflow, output_path: str = "graph.png"):
+    """
+    Generate visualization of the workflow graph
+
+    Args:
+        workflow: Compiled LangGraph workflow
+        output_path: Path to save the graph image
+    """
+    try:
+        from langchain_core.runnables.graph import MermaidDrawMethod
+
+        graph = workflow.get_graph(xray=True)
+        png_bytes = graph.draw_mermaid_png(draw_method=MermaidDrawMethod.PYPPETEER)
+
+        with open(output_path, "wb") as f:
+            f.write(png_bytes)
+
+        print(f"\n📊 Graph visualization saved to: {output_path}")
+    except Exception as e:
+        print(f"\n⚠️  Could not generate graph visualization: {e}")
+
+if __name__ == "__main__":
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    workflow = create_agent_graph(llm=llm, tools_list=[], llm_quiz=llm)
+    visualize_graph(workflow, output_path="agent_graph.png")

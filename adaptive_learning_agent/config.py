@@ -1,7 +1,7 @@
 import os
 # Get the base directory of your project on the E: drive
 # Update this string to your EXACT project folder path
-BASE_DIR = r"E:\\GenAI_Master\\LLMs\\End2EndAgenticAI\\adaptive_learning_agent"
+BASE_DIR = r"/home/reactplus/linhtinh/IT5412-LLMs/adaptive_learning_agent"
 
 # --- Directory Configuration ---
 MARKDOWN_DIR = os.path.join(BASE_DIR, "markdown_docs")
@@ -16,6 +16,7 @@ SPARSE_VECTOR_NAME = "sparse"
 DENSE_MODEL = "sentence-transformers/all-mpnet-base-v2"
 SPARSE_MODEL = "Qdrant/bm25"
 GEMINI_MODEL = "gemini-2.5-flash"
+OPENAI_MODEL = "gpt-4o-mini"
 # LLM_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
 LLM_MODEL = "steamdj/llama3.1-cpu-only:latest"
 GROQ_MODEL = "llama-3.3-70b-versatile"
